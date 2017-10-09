@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Partial Script example</title>
+    <script type="text/javascript" src="../node_modules/ractive/ractive.min.js"></script>
+</head>
+<body>
+    <div id="target"></div>
+
+    <script id="template" type="text/ractive">
+    <h2>Lots of Yachts</h2>
+        {{ #each yachts as yacht }}
+            <div>
+                {{ > name yacht as info }} - owner {{ > name .owner as info }}
+            </div>
+        {{ /each }}
+
+        <!-- Note:
+            {{ > name yacht as info }}
+            <=>
+            {{ #with yacht as info }}
+                {{ > name }}
+            {{ /with }}
+         -->
+    </script>
+
+    <script id="name" type="text/ractive">
+        <!-- {{ #if .type === 'business' }}
+            {{ > business-name }}
+        {{ elseif .type === 'yacht' }}
+            {{ > yacht-name }}
+        {{ else}}
+            {{ > person-name }}
+        {{ /if }} -->
+
+        {{ > `${info.type}-name` }}
+    </script>
+
+    <script type="text/ractive" id="business-name">
+        {{ info.name }}{{ info.classifier ? `, ${info.classifier}` : '' }}
+    </script>
+
+    <script type="text/ractive" id="yacht-name">
+        {{ info.name }}
+    </script>
+
+    <script type="text/ractive" id="person-name">
+        {{ info.familyName }}, {{info.givenName}}{{info.suffix ? ` ${info.suffix}` : ''}}
+    </script>
+
+    <script type="text/javascript">
+        var ractive = new Ractive({
+            target: 'target',
+            template: '#template',
+            data: {
+                yachts: [
+                    { name: 'Larry\'s Little Lady', type: 'yacht', owner: { type: 'business', name: 'Oracle', classifier: 'Co' } },
+                    { name: 'SS Minnow Johnson', type: 'yacht', owner: { type: 'person', givenName: 'Lawrence', familyName: 'Wall' } },
+                    { name: 'Le Grande Divorcee', type: 'yacht', owner: { type: 'business', name: 'Mr. Lawyer', classifier: 'LLC' } }
+                ]
+            }
+        });
+    </script>
+</body>
+</html>
