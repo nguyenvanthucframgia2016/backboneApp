@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Component example</title>
+    <link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <script type="text/javascript" src="../node_modules/ractive/ractive.min.js"></script>
+</head>
+<body>
+    <div class="container"></div>
+
+    <script type="text/ractive" id="app-view">
+        <GridView rows="{{users}}" columns="{{cols}}"></GridView>
+    </script>
+
+    <script type="text/ractive" id="gridview-template">
+        <table class="table table-bordered">
+            <thead>
+                {{ #with columns }}
+                    <tr>
+                        {{ #each columns as column }}
+                            <th>{{ column.label }}</th>
+                        {{ /each }}
+                    </tr>
+                {{ /with }}
+            </thead>
+            <tbody>
+                {{ #each rows as row }}
+                    <tr>
+                        {{ #each columns }}
+                            <td>{{ row[.field] }}</td>
+                        {{ /each }}
+                    </tr>
+                {{ else }}
+                    <tr>
+                        <td colspan="3">No result</td>
+                    </tr>
+                {{ /each }}
+            </tbody>
+        </table>
+    </script>
+
+    <script type="text/javascript">
+        var GridView = Ractive.extend({
+            isolated: true,
+            template: '#gridview-template',
+            data: {
+                rows: null,
+                columns: null
+            }
+        });
+
+        var ractive = Ractive({
+            target: '.container',
+            template: '#app-view',
+            data: {
+                cols: [
+                    {field: 'username', label: 'Username'},
+                    {field: 'name', label: 'Full Name'},
+                    {field: 'email', label: 'Email'}
+                ],
+                users: [
+                    {username: 'admin', name: 'Admin', email: 'admin@example.com'},
+                    {username: 'tg', name: 'Thadius Gorge', email: 'tg@example.com'},
+                    {username: 'f999', name: 'Frank', email: 'frank@example.com'}
+                ]
+            },
+            components: {
+                GridView: GridView
+            }
+        });
+    </script>
+</body>
+</html>

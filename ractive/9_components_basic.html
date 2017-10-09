@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Component basic example</title>
+    <script type="text/javascript" src="../node_modules/ractive/ractive.min.js"></script>
+</head>
+<body>
+    <div class="container"></div>
+
+    <script type="text/ractive" id="widget-template">
+        <div class="row">
+            {{ widget.message }}
+        </div>
+    </script>
+
+    <script type="text/ractive" id="app-template">
+        <Widget widget="{{ widget }}"></Widget>
+    </script>
+
+    <script type="text/javascript">
+        var Widget = Ractive.extend({
+            isolated: true, //  set isolated to true. This means that the template in the component does not have access to the parent data, default is false
+            template: '#widget-template',
+            data: {
+                message: 'default message'
+            }
+        });
+
+        var ractive = Ractive({
+            target: '.container',
+            template: '#app-template',
+            components: {
+                Widget: Widget
+            },
+            data: {
+                widget: {
+                    message: 'Component demo'
+                }
+            }
+        });
+    </script>
+</body>
+</html>
