@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>CRUD Backbonejs combine with Ractivejs</title>
+    <link rel="stylesheet" type="text/css" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+</head>
+<body>
+    <div class="container">
+        <div class="user-container"></div>
+    </div>
+
+    <!-- include library -->
+    <script type="text/javascript" src="../../node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../../node_modules/underscore/underscore-min.js"></script>
+    <script type="text/javascript" src="../../node_modules/backbone/backbone-min.js"></script>
+    <script type="text/javascript" src="../../node_modules/ractive/ractive.min.js"></script>
+    <script type="text/javascript" src="../../node_modules/backbone-validation/dist/backbone-validation-min.js"></script>
+
+    <!-- include template -->
+    <script type="text/ractive" id="user-template">
+        <div class="row">
+            <button class="btn btn-primary margin-top-20 margin-bottom-20" on-click="@this.addUserForm()">Add User</button>
+        </div>
+        <div class="row">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>FirstName</th>
+                        <th>LastName</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ #each users as user }}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.first_name }}</td>
+                            <td>{{ user.last_name }}</td>
+                            <td>
+                                <button class="btn btn-warning" on-click="@this.editUserForm(user.id)">Edit</button>
+                                <button class="btn btn-danger" on-click="@this.deleteUser(user.id)">Delete</button>
+                            </td>
+                        </tr>
+                    {{ else }}
+                        <tr>
+                            <td colspan="4">No results</td>
+                        </tr>
+                    {{ /each }}
+                </tbody>
+            </table>
+        </div>
+    </script>
+
+    <!-- Modal add edit user -->
+    <div id="user-form-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content user-form-container"></div>
+        </div>
+    </div>
+
+    <script type="text/ractive" id="user-form-body">
+        <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">{{ title }}</h4>
+            </div>
+            <!-- Modal body -->
+            <div class="modal-body">
+                <input type="hidden" name="id" class="form-control" value="{{ user.id }}" />
+                <div class="form-group">
+                    <label for="first-name">FirstName</label>
+                    <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" />
+                </div>
+                <div class="form-group">
+                    <label for="last-name">LastName</label>
+                    <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="add-user" on-click="@this.saveUser(user)">{{ submitTitle }}</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+    </script>
+
+    <!-- include js that handle project -->
+    <script type="text/javascript" src="models/user.js"></script>
+    <script type="text/javascript" src="collections/user.js"></script>
+    <script type="text/javascript" src="views/app.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+</body>
+</html>
