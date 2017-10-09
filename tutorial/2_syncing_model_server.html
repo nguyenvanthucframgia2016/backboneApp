@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>create model</title>
+    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../node_modules/underscore/underscore-min.js"></script>
+    <script type="text/javascript" src="../node_modules/backbone/backbone-min.js"></script>
+</head>
+<body>
+    <!-- Link tham khao
+        https://www.codeproject.com/Articles/797899/BackBone-Tutorial-Part-CRUD-Operations-on-Backbone
+        https://quickleft.com/blog/backbone-js-tips-and-tricks/
+     -->
+    <script type="text/javascript">
+        var postModel = Backbone.Model.extend({
+            urlRoot: 'https://jsonplaceholder.typicode.com/posts',
+            idAttribute: 'id',
+            defaults: {
+                id: '',
+                userId: '',
+                body: '',
+                title: ''
+            },
+            getId: function () {
+                return this.get('id');
+            },
+            setId: function (id) {
+                this.set('id', id);
+            },
+            getUserId: function () {
+                return this.get('userId');
+            },
+            setUserId: function (userId) {
+                this.set('userId', userId);
+            },
+            getBody: function () {
+                return this.get('body');
+            },
+            setBody: function (body) {
+                this.set('body', body);
+            },
+            getTitle: function () {
+                return this.get('title');
+            },
+            setTitle: function (title) {
+                this.set('title', title);
+            }
+        });
+
+        var post = new postModel();
+
+        // index
+        post.fetch().then(function (response, status, options) {
+            console.log(post.getId()); // model
+            console.log(response); // not model
+        }).fail(function (response) {
+            console.log('fails');
+        });
+
+        // show
+        var post2 = new postModel({
+            id: 1
+        });
+        post2.fetch({
+            success: function (model, response, options) {
+                // console.log(model); // model
+            },
+            error: function (model, xhr, options) {
+                console.log(xhr);
+            }
+        });
+
+        // create
+        var post3 = new postModel({
+            userId: 1,
+            title: '124',
+            body: '456'
+        });
+        post3.unset('id');
+
+        post3.save().done(function (model, response, options) {
+            console.log(model);
+        }).fail(function (model, xhr, options) {
+            console.log(xhr);
+        });
+
+        // destroy
+        var post4 = new postModel({
+            id: 7
+        });
+
+        post4.destroy().then(function (model, status, options) {
+            console.log(model);
+        }).catch(function (err) {
+            console.log(err);
+        });
+
+        // update
+        var post5 = new postModel({
+            id: 8
+        });
+
+        post5.fetch().done(function (model, response, options) {
+            post5.setTitle('update Title');
+            post5.save().done(function (model, response, options) {
+                console.log(model);
+            }).fail(function (model, xhr, options) {
+                console.log('error save');
+            });
+        }).fail(function (model, xhr, options) {
+            console.log('error');
+        });
+
+    </script>
+</body>
+</html>

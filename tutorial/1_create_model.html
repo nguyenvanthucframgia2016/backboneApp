@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>create model</title>
+    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../node_modules/underscore/underscore-min.js"></script>
+    <script type="text/javascript" src="../node_modules/backbone/backbone-min.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        var Song = Backbone.Model.extend({
+            defaults: {
+                title: 'default1'
+            },
+            initialize: function () {
+                // console.log('initialize');
+
+                this.on('change:title', function (model, newValue) {
+                    console.log('newValue', newValue);
+                    console.log('previousValue', model.previous('title'));
+                });
+            },
+            getTitle: function () {
+                return this.get('title');
+            },
+            setTitle: function (title) {
+                this.set('title', title);
+            }
+        });
+        var song1 = new Song();
+        // console.log('title = ', song1.getTitle());
+    </script>
+</body>
+</html>

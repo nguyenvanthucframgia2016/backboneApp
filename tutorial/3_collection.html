@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Collection</title>
+    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../node_modules/underscore/underscore-min.js"></script>
+    <script type="text/javascript" src="../node_modules/backbone/backbone-min.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        var postModel = Backbone.Model.extend({
+            defaults: {
+                id: '',
+                userId: '',
+                body: '',
+                title: ''
+            }
+        });
+
+        var postCollections = Backbone.Collection.extend({
+            model: postModel
+        });
+
+        var posts = new postCollections([
+            new postModel(),
+            new postModel({id: 1, userId: 1, body: '1234', title: '456'}),
+            new postModel({id: 2, userId: 3})
+        ]);
+    </script>
+</body>
+</html>

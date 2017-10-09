@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Event</title>
+    <link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../node_modules/underscore/underscore-min.js"></script>
+    <script type="text/javascript" src="../node_modules/backbone/backbone-min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="row" style="margin: 20px 0px;">
+            <button class="btn btn-primary" id="add-user-button">Add User</button>
+        </div>
+        <div class="row">
+            <table class="table table-bordered">
+                <thead>
+                    <th>Id</th>
+                    <th>FirstName</th>
+                    <th>LastName</th>
+                    <th>Avatar</th>
+                    <th>Action</th>
+                </thead>
+                <tbody id="user-container"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal add user -->
+    <div id="add-user-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Add User</h4>
+                </div>
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <div id="add-user-container"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="add-user">Save</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal edit user -->
+    <div id="edit-user-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Edit User</h4>
+                </div>
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <div id="edit-user-container"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="edit-user">Update</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/template" id="user-form-template">
+        <div class="row">
+            <div class="form-group">
+                <label for="id">Id</label>
+                <input type="text" name="id" class="form-control" id="user-id" value="<%= user.id %>" <%= typeof(disable) !== 'undefined' && disable ? 'disabled' : '' %> />
+            </div>
+            <div class="form-group">
+                <label for="first-name">FirstName</label>
+                <input type="text" name="first_name" class="form-control" id="user-first-name" value="<%= user.first_name %>" />
+            </div>
+            <div class="form-group">
+                <label for="last-name">LastName</label>
+                <input type="text" name="last_name" class="form-control" id="user-last-name"  value="<%= user.last_name %>" />
+            </div>
+            <div class="form-group">
+                <label for="avatar">Avatar</label>
+                <input type="text" name="avatar" class="form-control" id="user-avatar" value="<%= user.avatar %>" />
+            </div>
+        </div>
+    </script>
+
+    <script type="text/template" id="user-item">
+        <td><%= id %></td>
+        <td><%= first_name %></td>
+        <td><%= last_name %></td>
+        <td><%= avatar %></td>
+        <td>
+            <button class="btn btn-warning edit">Edit</button>
+            <button class="btn btn-danger delete">Delete</button>
+        </td>
+    </script>
+    <script type="text/javascript">
+        // Events
+        var customEvents = _.extend({}, Backbone.Events);
+
+        // model
+        var User = Backbone.Model.extend({
+            defaults: {
+                id: '',
+                first_name: '',
+                last_name: '',
+                avatar: ''
+            }
+        });
+
+        // Collection
+        var UserCollection = Backbone.Collection.extend({
+            model: User
+        });
+
+        // View
+        var PersonView = Backbone.View.extend({
+            tagName: 'tr',
+            template: _.template($('#user-item').html()),
+            events: {
+                'click .delete': 'delete',
+                'click .edit': 'edit'
+            },
+            render: function () {
+                var content = this.template(this.model.toJSON());
+                this.$el.html(content);
+
+                return this;
+            },
+            delete: function () {
+                customEvents.trigger('deleteUserEvent', this.model);
+            },
+            edit: function () {
+                var content = _.template($('#user-form-template').html());
+                $('#edit-user-container').html(content({
+                    user: this.model.toJSON(),
+                    disable: true
+                }));
+                $('#edit-user-modal').modal('show');
+            }
+        });
+
+        var PeopleView = Backbone.View.extend({
+            el: $('#user-container'),
+            events: {
+                'click .add-user': 'addUser'
+            },
+            initialize: function () {
+                this.render();
+                this.listenTo(this.collection, 'add reset remove change', this.render);
+                customEvents.on('addUserEvent', this.addUser, this);
+                customEvents.on('updateUserEvent', this.updateUser, this);
+                customEvents.on('deleteUserEvent', this.deleteUser, this);
+            },
+            render: function () {
+                var self = this;
+                this.$el.html('');
+
+                this.collection.each(function (user) {
+                    var personView = new PersonView({
+                        model: user
+                    });
+
+                    self.$el.append(personView.render().$el);
+                });
+
+                return this;
+            },
+            addUser: function () {
+                var user = new User({
+                    id: $('#user-id').val(),
+                    first_name: $('#user-first-name').val(),
+                    last_name: $('#user-last-name').val(),
+                    avatar: $('#user-avatar').val()
+                });
+
+                this.collection.push(user);
+                $('#add-user-modal').modal('hide');
+            },
+            updateUser: function (id, user) {
+                var model = this.collection.findWhere({
+                    id: parseInt(id)
+                });
+
+
+                model.set(user);
+                this.collection.add(model, {merge: true});
+                console.log(this.collection);
+
+                $('#edit-user-modal').modal('hide');
+            },
+            deleteUser: function (user) {
+                this.collection.remove(user);
+            }
+        });
+
+        // Initialize data
+        var user1 = new User({
+            id: 1,
+            first_name: "Eve",
+            last_name: "Holt",
+            avatar: "https://s3.amazonaws.com/uifaces/faces/twitter/marcoramires/128.jpg"
+        });
+        var user2 = new User({
+            id: 2,
+            first_name: "Charles",
+            last_name: "Morris",
+            avatar: "https://s3.amazonaws.com/uifaces/faces/twitter/stephenmoon/128.jpg"
+        });
+        var user3 = new User({
+            id: 3,
+            first_name: "Tracey",
+            last_name: "Ramos",
+            avatar: "https://s3.amazonaws.com/uifaces/faces/twitter/bigmancho/128.jpg"
+        });
+        var users = new UserCollection([
+            user1,
+            user2,
+            user3
+        ]);
+
+        var peopleView = new PeopleView({
+            collection: users
+        });
+    </script>
+    <script type="text/javascript">
+        $(function () {
+            var container = $('.container');
+            container.on('click', '#add-user-button', function () {
+                var content = _.template($('#user-form-template').html());
+                $('#add-user-container').html(content({
+                    user: new User()
+                }));
+                $('#add-user-modal').modal('show');
+            });
+
+            $('#add-user').click(function () {
+                customEvents.trigger('addUserEvent');
+            });
+
+            $('#edit-user').click(function () {
+                var user = {
+                    first_name: $('#user-first-name').val(),
+                    last_name: $('#user-last-name').val(),
+                    avatar: $('#user-avatar').val()
+                };
+                var id = $('#user-id').val();
+
+                customEvents.trigger('updateUserEvent', id, user);
+            });
+        });
+    </script>
+</body>
+</html>

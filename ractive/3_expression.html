@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Expression</title>
+    <script type="text/javascript" src="../node_modules/ractive/ractive.min.js"></script>
+</head>
+<body>
+    <div class="container"></div>
+
+    <script type="text/template" id="country-template">
+        {{ #country }}
+            <p>{{ name }}</p>
+            <p>{{ format(population) }}</p>
+        {{ /country }}
+        {{ #item }}
+            <p>Name items: {{ name }}</p>
+            <p>Amount: {{ price * quantity }}</p>
+        {{ /item }}
+    </script>
+
+    <script type="text/javascript">
+        var ractive = Ractive({
+            target: '.container',
+            template: '#country-template',
+            data: {
+                country: {
+                    name: 'Hanoi',
+                    population: 5003000
+                },
+                item: {
+                    name: 'banana',
+                    price: 0.9,
+                    quantity: 3
+                }
+            },
+            format: function (num) {
+                if (num > 1000000000) {
+                    return (num / 1000000000).toFixed(1) + ' billion';
+                }
+
+                if (num > 1000000) {
+                    return (num / 1000000).toFixed(1) + ' million';
+                }
+
+                if (num > 1000) {
+                    return (Math.floor(num / 1000)) + ',' + (num % 1000);
+                }
+
+                return num;
+            }
+        });
+    </script>
+</body>
+</html>

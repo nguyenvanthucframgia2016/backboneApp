@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello world</title>
+    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../node_modules/ractive/ractive.min.js"></script>
+</head>
+<body>
+    <div id="container"></div>
+
+    <script type="text/template" id="template">
+        <p>{{ greeting }} {{ name }}</p>
+    </script>
+
+    <script type="text/javascript">
+        var ractive = Ractive({
+            target: '#container',
+            template: '#template',
+            data: {
+                greeting: 'Hello',
+                name: 'World'
+            }
+        });
+    </script>
+</body>
+</html>

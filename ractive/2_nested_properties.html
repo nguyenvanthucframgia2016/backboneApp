@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Nested properties</title>
+    <script type="text/javascript" src="../node_modules/ractive/ractive.min.js"></script>
+</head>
+<body>
+    <div class="container"></div>
+
+    <script type="text/template" id="hello-template">
+        {{ #country }}
+            <p>Country: {{ name }}</p>
+            <p>Population: {{ population }}</p>
+            {{ #capital }}
+                <p>Capital name: {{ name }}</p>
+                <p>Lat: {{ lat }}</p>
+                <p>Long: {{ long }}</p>
+            {{ /capital }}
+        {{ /country }}
+    </script>
+
+    <script type="text/javascript">
+        var ractive = Ractive({
+            target: '.container',
+            template: '#hello-template',
+            data: {
+                country: {
+                    name: 'Vietnam',
+                    population: 9000,
+                    capital: {
+                        name: 'Hanoi',
+                        lat: 100,
+                        long: 200
+                    }
+                }
+            }
+        });
+
+        // get data.
+        var country = ractive.get('country');
+        console.log(country);
+
+        // set data
+        country.name = 'Viet Name tuoi dep';
+        ractive.update('country');
+    </script>
+</body>
+</html>

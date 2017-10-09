@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Event</title>
+    <link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../node_modules/underscore/underscore-min.js"></script>
+    <script type="text/javascript" src="../node_modules/backbone/backbone-min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <ul>
+                <li>
+                    <a href="#home/1">Home</a>
+                </li>
+                <li>
+                    <a href="#about">About</a>
+                </li>
+                <li>
+                    <a href="#contact/1">Contact</a>
+                </li>
+                <li>
+                    <a href="javascript:;" id="back-to-home">Back to home</a>
+                </li>
+            </ul>
+        </nav>
+        <div id="result"></div>
+    </div>
+
+    <script type="text/javascript">
+        var customEvents = _.extend({}, Backbone.Events);
+        var Router = Backbone.Router.extend({
+            routes: {
+                '': 'home',
+                'home': 'home',
+                'about': 'about',
+                'contact/:id': 'contact'
+            },
+            // fired before every route.
+            execute: function (callback, args, name) {
+                if (callback) {
+                    callback.apply(this, args);
+                }
+            },
+            initialize: function (options) {
+                this.view = options.view;
+            },
+            home: function () {
+                this.view.render('home');
+            },
+            about: function() {
+                this.view.render('about');
+            },
+            contact: function () {
+                this.view.render('contact');
+            }
+        });
+
+        var HomeView = Backbone.View.extend({
+            render: function () {
+                this.$el.html('Home router example');
+
+                return this;
+            }
+        });
+
+        var AboutView = Backbone.View.extend({
+            render: function () {
+                this.$el.html('About router example');
+
+                return this;
+            }
+        });
+
+        var ContactView = Backbone.View.extend({
+            render: function () {
+                this.$el.html('Contact router example');
+
+                return this;
+            }
+        });
+
+        var AppView = Backbone.View.extend({
+            el: $('#result'),
+            initialize: function() {
+                customEvents.on('backToHome', this.backToHome, this);
+                this.router = new Router({
+                    view: this
+                });
+
+                Backbone.history.start();
+            },
+            render: function (view) {
+                switch (view) {
+                    case 'home':
+                        this.renderHomeView();
+                        break;
+
+                    case 'about':
+                        this.renderAboutView();
+                        break;
+
+                    case 'contact':
+                        this.renderContactView();
+                        break;
+
+                    default:
+                        this.renderHomeView();
+                        break;
+                }
+
+                return this;
+            },
+            renderHomeView: function () {
+                var homeView = new HomeView();
+                this.$el.html(homeView.render().$el);
+
+                return this;
+            },
+            renderAboutView: function () {
+                var aboutView = new AboutView();
+                this.$el.html(aboutView.render().$el);
+
+                return this;
+            },
+            renderContactView: function () {
+                var contactView = new ContactView();
+                this.$el.html(contactView.render().$el);
+
+                return this;
+            },
+            backToHome: function (event) {
+                // Backbone.history.navigate('', {trigger: true});
+                this.router.navigate('', true);
+            }
+        });
+
+        new AppView();
+    </script>
+
+    <script type="text/javascript">
+        $(function () {
+            $('#back-to-home').click(function (event) {
+                event.preventDefault();
+                customEvents.trigger('backToHome');
+            });
+        });
+    </script>
+</body>
+</html>
