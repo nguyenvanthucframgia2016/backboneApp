@@ -5,6 +5,14 @@ var User = Backbone.Model.extend({
         last_name: ''
     },
     idAttribute: 'id',
+    validation: {
+        first_name: {
+            required: true
+        },
+        last_name: {
+            required: true
+        }
+    },
     // Lets create function which will return the custom URL based on the method type
     getCustomUrl: function (method) {
         switch (method) {
