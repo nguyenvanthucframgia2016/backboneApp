@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Login example</title>
+    <link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+<body>
+    <div class="container">
+
+    </div>
+    <!-- include library -->
+    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../node_modules/underscore/underscore-min.js"></script>
+    <script type="text/javascript" src="../node_modules/backbone/backbone-min.js"></script>
+    <script type="text/javascript" src="../node_modules/ractive/ractive.min.js"></script>
+    <script type="text/javascript" src="../node_modules/backbone-validation/dist/backbone-validation-min.js"></script>
+
+    <script type="text/ractive" id="login-template">
+        <div class="row">
+            <div class="form-group {{ errors.email ? 'has-error' : '' }}">
+                <label for="email">Email</label>
+                <input type="email" name="email" value="{{ user.email }}" placeholder="Enter email" class="form-control" />
+                <span class="help-block">{{ errors.email }}</span>
+            </div>
+            <div class="form-group {{ errors.password ? 'has-error' : '' }}">
+                <label for="password">Password</label>
+                <input type="password" name="password" value="{{ user.password }}" class="form-control" />
+                <span class="help-block">{{ errors.password }}</span>
+            </div>
+            <button class="btn btn-primary" on-click="@this.login(user)">Login</button>
+        </div>
+    </script>
+    <script type="text/javascript">
+        // model
+        var LoginUser = Backbone.Model.extend({
+            defaults: {
+                email: '',
+                password: ''
+            },
+            validation: {
+                email: [
+                    {
+                        required: true,
+                        msg: 'Please enter a email'
+                    }
+                    /*,
+                    {
+                        pattern: 'email',
+                        msg: 'Please enter a valid email'
+                    }*/
+                ],
+                password: {
+                    required: true
+                }
+            },
+            idAttribute: 'id',
+            urlRoot: 'https://reqres.in/api/login'
+        });
+
+        // Login view
+        var LoginView = Backbone.View.extend({
+            validate: function (ractive) {
+                Backbone.Validation.bind(this, {
+                    ractive: ractive,
+                    attributes: function (view) {
+                        // only email and password will be validated
+                        return [
+                            'email',
+                            'password'
+                        ];
+                    }
+                });
+            }
+        });
+
+        // Ractive root application
+        var AppRactive = Ractive({
+            target: '.container',
+            template: '#login-template',
+            data: {
+                user: new LoginUser().toJSON(),
+                errors: {}
+            },
+            login: function (user) {
+                // create view
+                var loginView = new LoginView({
+                    model: new LoginUser(user)
+                });
+
+                // call validate
+                loginView.validate(this);
+
+                // check validate before implement login action
+                if (loginView.model.isValid(true)) {
+                    loginView.model.save().done(function (response, status, options) {
+                        console.log('response', response);
+                    }).fail(function (response, xhr, options) {
+                        console.log('errors');
+                    });
+                }
+            }
+        });
+
+        // config global handle validation using backbone validation
+        _.extend(Backbone.Validation.callbacks, {
+            valid: function (view, attr, selector) {
+                if (typeof (this.ractive) !== 'undefined'
+                    && this.ractive
+                ) {
+                    var errors = this.ractive.get('errors');
+
+                    delete errors[attr];
+                    this.ractive.update('errors');
+                }
+            },
+            invalid: function(view, attr, error, selector) {
+                if (typeof (this.ractive) !== 'undefined'
+                    && this.ractive
+                ) {
+                    var errors = this.ractive.get('errors');
+
+                    errors[attr] = error;
+                    this.ractive.update('errors');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
