@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Pagination component example</title>
+    <link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    <style type="text/css">
+        .margin-top-20 {
+            margin-top: 20px;
+        }
+
+        .margin-left-0 {
+            margin-left: 0px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+    </div>
+    <!-- include library -->
+    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../node_modules/underscore/underscore-min.js"></script>
+    <script type="text/javascript" src="../node_modules/backbone/backbone-min.js"></script>
+    <script type="text/javascript" src="../node_modules/ractive/ractive.min.js"></script>
+
+    <script type="text/ractive" id="paginate-template">
+        {{ #with pagination }}
+            <ul class="pagination">
+                <li class-disabled="currentPage == 1">
+                    <a href="javascript:;" on-click="@this.fire('paginate-events', @context, 1)">First</a>
+                </li>
+                <li class-disabled="currentPage == 1">
+                    <a href="javascript:;" on-click="@this.fire('paginate-events', @context, currentPage - 1)">Previous</a>
+                </li>
+                {{ #each pages as page }}
+                    <li class-active="page == currentPage">
+                        {{ #if (page == currentPage) }}
+                            <span class="page-link">{{ page }}</span>
+                        {{ else }}
+                            <a href="javascript:;" on-click="@this.fire('paginate-events', @context, page)">{{ page }}</a>
+                        {{ /if }}
+
+                    </li>
+                {{ /each }}
+                <li class-disabled="currentPage == lastPage">
+                    <a href="javascript:;" on-click="@this.fire('paginate-events', @context, currentPage + 1)">Next</a>
+                </li>
+                <li class-disabled="currentPage == lastPage">
+                    <a href="javascript:;" on-click="@this.fire('paginate-events', @context, lastPage)">Last</a>
+                </li>
+            </ul>
+        {{ /with }}
+    </script>
+
+    <script type="text/ractive" id="app-template">
+        <div class="row margin-top-20 margin-left-0">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>FirstName</th>
+                        <th>LastName</th>
+                        <th>Avatar</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ #each users as user }}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.first_name }}</td>
+                            <td>{{ user.last_name }}</td>
+                            <td>{{ user.avatar }}</td>
+                            <td>
+                                <button class="btn btn-warning" on-click="@this.editUserForm(user.id)">Edit</button>
+                                <button class="btn btn-danger" on-click="@this.deleteUserForm(user.id)">Edit</button>
+                            </td>
+                        </tr>
+                    {{ else }}
+                        <tr>
+                            <td colspan="5">No Results</td>
+                        </tr>
+                    {{ /each }}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-container">
+            <Pagination pagination="{{ pagination }}"></Pagination>
+        </div>
+    </script>
+
+    <script type="text/javascript">
+        //Custom event
+        var customEvents = _.extend({}, Backbone.Events);
+
+        // model
+        var User = Backbone.Model.extend({
+            defaults: {
+                id: '',
+                first_name: '',
+                last_name: '',
+                avatar: ''
+            },
+            idAttribute: 'id'
+        });
+
+        // collection
+        var UserCollection = Backbone.Collection.extend({
+            model: User,
+            url: 'https://reqres.in/api/users'
+        });
+
+        // View
+        var AppView = Backbone.View.extend({
+            initialize: function (options) {
+                this.appRactive = options.appRactive;
+                this.render();
+
+                customEvents.on('userPagination', this.render, this);
+            },
+            render: function (data) {
+                var self = this;
+                data = data || {};
+
+                this.collection.fetch({
+                    data: data
+                }).done(function (response, status, options) {
+                    var pagination = {
+                        total: response.total,
+                        perPage: response.per_page,
+                        currentPage: response.page,
+                        lastPage: response.total_pages
+                    };
+
+                    self.appRactive.set('users', response.data);
+                    self.appRactive.set('pagination', pagination);
+                }).fail(function (response, xhr, options) {
+                    console.log('errors');
+                });
+            }
+        });
+
+        //Pagination Component
+        var PaginationComponent = Ractive.extend({
+            isolated: true,
+            template: '#paginate-template',
+            data: function () {
+                return {
+                    pagination: {
+                        total: 0,
+                        perPage: 0,
+                        currentPage: 0,
+                        lastPage: 0
+                    }
+                }
+            },
+            computed: {
+                /*// property
+                pages: {
+                    get: function () {
+                        var lastPage = this.get('pagination.lastPage') || 0;
+
+                        return _.range(1, lastPage + 1);
+                    }
+                },*/
+                /*// function
+                pages: function () {
+                    var lastPage = this.get('pagination.lastPage') || 0;
+
+                    return _.range(1, lastPage + 1);
+                },*/
+                // function syntax
+                pages: '_.range(1, (${pagination.lastPage} || 0) + 1)'
+            }
+        });
+
+        var AppRactive = Ractive({
+            target: '.container',
+            template: '#app-template',
+            data: {
+                users: null,
+                pagination: null
+            },
+            components: {
+                Pagination: PaginationComponent
+            },
+            onrender: function () {
+                var paginationComponent = this.findComponent('Pagination');
+
+                // listening event fire at pagination component
+                paginationComponent.on('paginate-events', function (context, currentPage) {
+                    customEvents.trigger('userPagination', {
+                        page: currentPage,
+                        per_page: 3
+                    });
+                });
+            }
+        });
+
+        // run application
+        new AppView({
+            collection: new UserCollection(),
+            appRactive: AppRactive
+        });
+    </script>
+</body>
+</html>
