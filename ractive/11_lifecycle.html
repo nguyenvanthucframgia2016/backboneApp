@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>LifeCycle demo</title>
+</head>
+<body>
+    <div class="container"></div>
+    <script type="text/javascript" src="../node_modules/ractive/ractive.min.js"></script>
+    <script type="text/ractive" id="app-template">
+        <input type="text" name="message" value="{{ message }}" />
+    </script>
+    <script type="text/javascript">
+        var ractive = Ractive({
+            target: '.container',
+            template: '#app-template',
+            on: {
+                construct: function () {
+                    console.log('1. construct');
+                },
+                config: function () {
+                    console.log('2. config');
+                },
+                init: function () {
+                    console.log('3. init');
+                },
+                render: function () {
+                    console.log('4. render');
+                },
+                complete: function () {
+                    console.log('5. complete');
+                }
+            },
+            observe: {
+                'message': {
+                    handler ( value, old, path, idx ) {
+                        console.log( `${path} changed to '${value}'` );
+                    },
+                    init: false,
+                    strict: true
+                }
+            },
+            data: {
+                message: 'Hello world'
+            }
+        })
+    </script>
+</body>
+</html>

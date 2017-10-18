@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Adaptor example</title>
+    <style type="text/css">
+        body {
+            font-family: 'Helvetica Neue', 'Arial';
+            font-size: 16px;
+            color: #353535;
+        }
+
+        table {
+            border-spacing: 0;
+            margin: 0 0 2em 0;
+        }
+
+        th {
+            background-color: #eee;
+        }
+
+        td, th {
+            border-bottom: 1px solid #eee;
+            padding: 0.2em 1em;
+            width: 6em;
+            text-align: right;
+        }
+
+        input[type="number"] {
+            font-size: inherit;
+            font-family: inherit;
+            width: 3.5em;
+            text-align: right;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container"></div>
+    <script type="text/javascript" src="../node_modules/ractive/ractive.min.js"></script>
+
+    <script type="text/javascript">
+        function Box(width, height) {
+            this.width = width;
+            this.height = height;
+
+            return this;
+        }
+
+        Box.prototype = {
+            getWidth: function () {
+                return this.width;
+            },
+            getHeight: function () {
+                return this.height;
+            },
+            setWidth: function (width) {
+                this.width = width;
+            },
+            setHeight: function (height) {
+                this.height = height;
+            }
+        }
+
+        Ractive.adaptors.boxAdaptor = {
+            filter: function ( object ) {
+                // Checks if the piece of data is an instance of Box.
+                return object instanceof Box;
+            },
+            wrap: function ( ractive, box, keypath, prefixer ) {
+                // We keep a reference to the original functions before monkey-patching.
+                var setWidth = box.setWidth;
+                var setHeight = box.setHeight;
+
+                // Use ractive.set on the the adapted data whenever the setters are used.
+                box.setWidth = function(width){
+                    ractive.set(prefixer({
+                        width: width
+                    }));
+                };
+
+                box.setHeight = function(height){
+                    ractive.set(prefixer({
+                        height: height
+                    }));
+                };
+
+                return {
+                    // Return a POJO representation of an instance of Box.
+                    get: function(){
+                        return {
+                            width: box.getWidth(),
+                            height: box.getHeight()
+                        };
+                    },
+
+                    // Update the adapted object's properties
+                    set: function(property, value){
+                        if (property === 'width') {
+                            setWidth.call(box, value);
+                        }
+
+                        if (property === 'height') {
+                            setHeight.call(box, value);
+                        }
+                    },
+
+                    // Update the adapted object.
+                    reset: function(data){
+                        // We don't adapt non-objects. And if the new data is an instance of Box
+                        // there's a high chance that its a new instance. In either case, we
+                        // need to tear down this adapter and have Ractive set it up again if
+                        // necessary.
+                        if (typeof data !== 'object' || data instanceof Box) {
+                            return false;
+                        }
+
+                        // Otherwise, we just parse through the data and update the existing box
+                        // instance.
+                        if (data.width !== undefined) {
+                            setWidth.call(box, data.width);
+                        }
+
+                        if (data.height !== undefined) {
+                            setHeight.call(box, data.height);
+                        }
+                    },
+
+                    // Delete the monkey-patched methods.
+                    teardown: function(){
+                        delete box.setWidth;
+                        delete box.setHeight;
+                    }
+                };
+            }
+        };
+
+        var ractive = Ractive({
+            el: 'body',
+            // Tell the instance we'll be using boxAdaptor
+            adapt: [ 'boxAdaptor' ],
+            // We write Ractive like normal.
+            template: `
+                <div>Box is {{ box.width }}x{{ box.height }}</div>
+                <div><input type="text" value="{{ box.width }}"></div>
+                <div><input type="text" value="{{ box.height }}"></div>
+            `
+        });
+
+        var box = new Box(3, 4);
+
+        // Set the Box instance as if it were a POJO.
+        ractive.set('box', box);
+
+        // Both box instance and box object will have 7 width and 11 height and will
+        // be rendered in the UI accordingly.
+        box.setWidth(7);
+        ractive.set('box.height', 11);
+    </script>
+</body>
+</html>
