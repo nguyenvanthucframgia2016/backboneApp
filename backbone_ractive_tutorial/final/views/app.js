@@ -1,7 +1,7 @@
 var AppView = Backbone.View.extend({
     initialize: function (options) {
         this.appRactive = options.appRactive;
-        customEvents.on('saveUser', this.addUser, this);
+        customEvents.on('saveUser', this.saveUser, this);
         customEvents.on('updateUser', this.updateUser, this);
         customEvents.on('deleteUser', this.deleteUser, this);
         customEvents.on('updateCollectionUser', this.render, this);
